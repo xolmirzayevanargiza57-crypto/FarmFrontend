@@ -2,120 +2,127 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
-  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, register } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isRegister) {
-        await register(name, email, password);
-        toast.success("Ro'yxatdan muvaffaqiyatli o'tdingiz!");
-      } else {
-        await login(email, password);
-        toast.success("Tizimga kirdingiz!");
-      }
+      await login(email, password);
+      toast.success("Tizimga muvaffaqiyatli kirdingiz!");
       navigate('/');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Xatolik yuz berdi');
+      toast.error(err.response?.data?.message || 'Email yoki parol noto\'g\'ri');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] p-4 text-sans">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-4xl shadow-2xl shadow-green-500/30 mb-4">
-            🐔
+        {/* Logo Section */}
+        <div className="text-center mb-10 animate-fade-in">
+          <div className="relative inline-block">
+            <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-5xl shadow-2xl shadow-green-500/40 mb-6">
+              🐔
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-amber-400 rounded-full border-4 border-[#1a1a2e] flex items-center justify-center text-white">
+              <ShieldCheck size={16} />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-white">Ferma Pro</h1>
-          <p className="text-gray-400 mt-1">Parrandachilik boshqaruv tizimi</p>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight">Ferma <span className="text-emerald-400">Pro</span></h1>
+          <p className="text-gray-400 mt-2 font-medium">Professional parrandachilik boshqaruv tizimi</p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
-          <h2 className="text-xl font-bold text-white mb-6">
-            {isRegister ? "Ro'yxatdan o'tish" : 'Tizimga kirish'}
-          </h2>
+        {/* Login Card */}
+        <div className="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-8 bg-emerald-500 rounded-full"></div>
+            <h2 className="text-2xl font-bold text-white tracking-wide">Tizimga kirish</h2>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <div className="relative">
-                <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-300 ml-1">Email manzilingiz</label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-400 transition-colors">
+                  <Mail size={20} />
+                </div>
                 <input
-                  type="text"
-                  placeholder="Ismingiz"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
+                  type="email"
+                  placeholder="admin@farm.uz"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition"
+                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-white/10 transition-all duration-300"
                 />
               </div>
-            )}
-
-            <div className="relative">
-              <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition"
-              />
             </div>
 
-            <div className="relative">
-              <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type={showPass ? 'text' : 'password'}
-                placeholder="Parol"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition"
-              />
-              <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-300 ml-1">Parolingiz</label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-400 transition-colors">
+                  <Lock size={20} />
+                </div>
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  className="w-full pl-12 pr-14 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-white/10 transition-all duration-300"
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPass(!showPass)} 
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1"
+                >
+                  {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
+              className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-emerald-500/25 hover:from-emerald-600 hover:to-green-700 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                  Yuklanmoqda...
+                <span className="flex items-center justify-center gap-3">
+                  <svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Tekshirilmoqda...
                 </span>
-              ) : (isRegister ? "Ro'yxatdan o'tish" : 'Kirish')}
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  Kirish
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              )}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-gray-400 text-sm">
-            {isRegister ? 'Akkountingiz bormi?' : "Akkountingiz yo'qmi?"}{' '}
-            <button onClick={() => setIsRegister(!isRegister)} className="text-emerald-400 hover:text-emerald-300 font-semibold">
-              {isRegister ? 'Kirish' : "Ro'yxatdan o'tish"}
-            </button>
-          </p>
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Xavfsiz tizim</p>
+            <p className="text-gray-400 text-xs mt-3 leading-relaxed italic">Ushbu tizim faqat ferma ma'murlari uchun mo'ljallangan. Kirish uchun maxsus ruxsatnoma talab etiladi.</p>
+          </div>
         </div>
 
-        <p className="text-center text-gray-500 text-xs mt-6">Demo: admin@farm.uz / admin123</p>
+        <p className="text-center text-gray-500/50 text-[10px] uppercase font-bold mt-8 tracking-tighter">Demo: admin@farm.uz / admin123</p>
       </div>
     </div>
   );
