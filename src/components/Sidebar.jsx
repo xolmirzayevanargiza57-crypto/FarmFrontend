@@ -18,15 +18,9 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const { logout, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const sidebarContent = (
     <div className={`flex flex-col h-full bg-gradient-to-b from-[#1a1a2e] to-[#16213e] text-white transition-all duration-300 ${collapsed ? 'w-[70px]' : 'w-[260px]'}`}>
@@ -66,21 +60,14 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* User & Logout */}
-      <div className="p-3 border-t border-white/10">
-        {!collapsed && user && (
-          <div className="px-3 py-2 mb-2">
-            <p className="text-sm font-semibold text-white">{user.name}</p>
-            <p className="text-xs text-gray-400">{user.role === 'admin' ? 'Administrator' : 'Ishchi'}</p>
-          </div>
-        )}
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all"
-        >
-          <LogOut size={20} className="shrink-0" />
-          {!collapsed && <span>Chiqish</span>}
-        </button>
+      {/* User Branding (No Logout) */}
+      <div className="p-5 border-t border-white/5 text-center">
+         {!collapsed && (
+           <div className="opacity-50">
+             <p className="text-[10px] font-black uppercase tracking-[0.3em]">Professional Edition</p>
+             <p className="text-[9px] mt-1 font-bold italic">Barcha huquqlar himoyalangan</p>
+           </div>
+         )}
       </div>
     </div>
   );
