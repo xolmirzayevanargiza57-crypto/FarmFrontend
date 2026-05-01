@@ -61,7 +61,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 lg:ml-0 ml-10 p-2 italic font-bold">
+    <div className="space-y-8 lg:ml-0 p-2">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>

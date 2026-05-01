@@ -6,9 +6,9 @@ import { Plus, Pencil, Trash2, Search, X, Bird, Hash, Tag, Users, Calendar, Home
 const API = import.meta.env.VITE_API_URL || '';
 
 const statusConfig = { 
-  active: { color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: Activity, label: 'Faol' }, 
-  sold: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: FileSpreadsheet, label: 'Sotilgan' }, 
-  deceased: { color: 'bg-rose-100 text-rose-700 border-rose-200', icon: AlertCircle, label: 'Nobud bo\'lgan' } 
+  active: { color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: Activity, label: 'Faol' }, 
+  sold: { color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', icon: FileSpreadsheet, label: 'Sotilgan' }, 
+  deceased: { color: 'bg-rose-500/20 text-rose-400 border-rose-500/30', icon: AlertCircle, label: 'Nobud bo\'lgan' } 
 };
 
 const emptyFlock = { flockId: '', name: '', breed: '', quantity: '', ageInDays: '', arrivalDate: '', status: 'active', housingUnit: '', notes: '' };
@@ -69,140 +69,115 @@ export default function Flocks() {
     } catch { toast.error('O\'chirishda xatolik yuz berdi'); }
   };
 
-  if (loading) return <div className="flex flex-col items-center justify-center py-20 gap-3"><div className="animate-spin h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full font-bold text-emerald-600"></div><p className="text-emerald-700 font-bold animate-pulse uppercase tracking-widest text-xs">Ma'lumotlar yuklanmoqda...</p></div>;
+  if (loading) return <div className="flex flex-col items-center justify-center py-20 gap-3"><div className="animate-spin h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full opacity-80 shadow-lg shadow-indigo-500/30"></div></div>;
 
   return (
-    <div className="space-y-6 lg:ml-0 ml-10 p-2">
+    <div className="space-y-6">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-3xl shadow-sm border border-gray-100 italic">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
-            <Bird size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-800 tracking-tight">PODALAR <span className="text-emerald-600">BOSHQARUVI</span></h1>
-            <p className="text-sm font-medium text-gray-500">Jami faol qushlar ro'yxati</p>
-          </div>
+      <div className="flex flex-col px-2 py-4 lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none mb-1">PODALAR <span className="text-indigo-400">BOSHQARUVI</span></h1>
+          <p className="text-sm font-medium text-slate-400">Jami faol qushlar ro'yxati</p>
         </div>
-        <button onClick={openAdd} className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-6 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all duration-200">
-          <Plus size={20} /> Yangi Poda Qo'shish
+        <button onClick={openAdd} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-xl shadow-indigo-500/20 active:scale-95">
+          <Plus size={18} /> Yangi Poda Qo'shish
         </button>
       </div>
 
       {/* Control Bar */}
-      <div className="flex flex-col md:flex-row gap-3">
+      <div className="flex flex-col md:flex-row gap-4 p-2">
         <div className="relative flex-1 group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors">
-            <Search size={18} />
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 border-r border-slate-700 pr-3">
+            <Search size={18} className="group-focus-within:text-indigo-400 transition-colors" />
           </div>
           <input 
             value={search} 
             onChange={e => { setSearch(e.target.value); setPage(1); }} 
-            placeholder="Poda nomi yoki ID bo'yicha qidirish..." 
-            className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-100 rounded-2xl outline-none focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 transition-all bg-white font-medium text-gray-700"
+            placeholder="Poda nomi bo'yicha tahlil qilish..." 
+            className="w-full pl-16 pr-6 py-4 bg-slate-900/50 backdrop-blur-md border border-slate-700/50 rounded-[1.5rem] outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-200 font-medium placeholder:text-slate-500 shadow-inner"
           />
         </div>
-        <div className="flex gap-2">
-          <div className="relative">
-            <Filter size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <select 
-              value={statusFilter} 
-              onChange={e => { setStatusFilter(e.target.value); setPage(1); }} 
-              className="pl-10 pr-10 py-3.5 bg-white border-2 border-gray-100 rounded-2xl outline-none focus:border-emerald-500/30 transition-all font-bold text-gray-600 appearance-none cursor-pointer"
-            >
-              <option value="">Barcha holatlar</option>
-              <option value="active">Faol</option>
-              <option value="sold">Sotilgan</option>
-              <option value="deceased">Nobud bo'lgan</option>
-            </select>
-            <MoreVertical size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+        <div className="relative min-w-[200px]">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 border-r border-slate-700 pr-3">
+            <Filter size={18} />
           </div>
+          <select 
+            value={statusFilter} 
+            onChange={e => { setStatusFilter(e.target.value); setPage(1); }} 
+            className="w-full pl-16 pr-10 py-4 bg-slate-900/50 backdrop-blur-md border border-slate-700/50 rounded-[1.5rem] outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold text-slate-300 appearance-none cursor-pointer shadow-inner"
+          >
+            <option value="">Barcha holatlar</option>
+            <option value="active" className="bg-slate-900">Faol</option>
+            <option value="sold" className="bg-slate-900">Sotilgan</option>
+            <option value="deceased" className="bg-slate-900">Nobud bo'lgan</option>
+          </select>
         </div>
       </div>
 
-      {/* Main Table - "Excel Rival" Style */}
-      <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Main Table - Premium Dark Style */}
+      <div className="bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-slate-700/50 overflow-hidden shadow-2xl relative mx-2">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="overflow-x-auto relative z-10">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-5 text-gray-400 font-bold uppercase tracking-wider text-xs">
-                  <div className="flex items-center gap-2"><Hash size={14}/> ID</div>
-                </th>
-                <th className="px-6 py-5 text-gray-700 font-extrabold uppercase tracking-widest text-xs">
-                  <div className="flex items-center gap-2"><Tag size={14}/> Poda nomi</div>
-                </th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs">
-                  <div className="flex items-center gap-2"><Bird size={14}/> Zoti</div>
-                </th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs text-center">
-                  <div className="flex items-center justify-center gap-2"><Users size={14}/> Soni</div>
-                </th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs text-center text-nowrap">
-                  <div className="flex items-center justify-center gap-2 text-nowrap"><Calendar size={14}/> Yoshi (Kun)</div>
-                </th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs">
-                  <div className="flex items-center gap-2"><Activity size={14}/> Holati</div>
-                </th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs">
-                  <div className="flex items-center gap-2"><Home size={14}/> Joylashuv</div>
-                </th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs text-right">
-                  Amallar
-                </th>
+              <tr className="border-b border-slate-700/50 bg-slate-800/30">
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px]"><div className="flex items-center gap-2"><Hash size={14}/> ID</div></th>
+                <th className="px-8 py-6 text-white font-black uppercase tracking-[0.2em] text-[#10px]"><div className="flex items-center gap-2"><Tag size={14}/> Poda</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px]"><div className="flex items-center gap-2"><Bird size={14}/> Zoti</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px] text-center"><div className="flex items-center justify-center gap-2"><Users size={14}/> Soni</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px] text-center text-nowrap"><div className="flex items-center justify-center gap-2"><Calendar size={14}/> Yashash muddati</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px]"><div className="flex items-center gap-2"><Activity size={14}/> Holati</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px]"><div className="flex items-center gap-2"><Home size={14}/> Katak</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px] text-right">Amal</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-800/60">
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center gap-3 opacity-30">
-                      <Search size={48} />
-                      <p className="text-lg font-bold">Hech qanday ma'lumot topilmadi</p>
-                    </div>
+                    <p className="text-xl font-bold text-slate-600 uppercase tracking-widest">Ma'lumot topilmadi</p>
                   </td>
                 </tr>
               ) : paginated.map((f, idx) => {
                 const StatusIcon = statusConfig[f.status]?.icon || Activity;
                 return (
-                  <tr key={f._id} className={`group hover:bg-emerald-50/30 transition-all duration-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'}`}>
-                    <td className="px-6 py-4">
-                      <span className="font-mono text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded-md">{f.flockId}</span>
+                  <tr key={f._id} className={`group hover:bg-slate-800/50 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-transparent' : 'bg-slate-800/20'}`}>
+                    <td className="px-8 py-5">
+                      <span className="font-mono text-[10px] text-slate-500 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/50 drop-shadow-sm">{f.flockId}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-8 py-5">
                       <div className="flex flex-col">
-                        <span className="text-gray-800 font-bold text-base group-hover:text-emerald-700 transition-colors uppercase tracking-tight">{f.name}</span>
-                        <span className="text-[10px] text-gray-400 font-medium tracking-widest uppercase">{new Date(f.arrivalDate).toLocaleDateString()} kelgan</span>
+                        <span className="text-white font-black text-base uppercase tracking-tighter group-hover:text-indigo-400 transition-colors drop-shadow-sm">{f.name}</span>
+                        <span className="text-[9px] text-slate-500 font-black tracking-[0.2em] uppercase">{new Date(f.arrivalDate).toLocaleDateString()} da kelgan</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600 font-medium italic">{f.breed}</td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-xl font-black text-gray-700 font-mono tracking-tighter">{f.quantity?.toLocaleString()}</span>
-                      <span className="text-[10px] text-gray-400 block -mt-1 font-bold">ta</span>
+                    <td className="px-8 py-5 text-slate-400 font-bold uppercase tracking-wider text-[11px]">{f.breed}</td>
+                    <td className="px-8 py-5 text-center">
+                      <span className="text-2xl font-black text-slate-200 font-mono tracking-tighter drop-shadow-md">{f.quantity?.toLocaleString()}</span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="inline-flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-gray-50 text-gray-600 font-bold border border-gray-100">
+                    <td className="px-8 py-5 text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-800/80 text-indigo-400 font-black border border-slate-700/50 drop-shadow-sm text-lg">
                         {f.ageInDays}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border ${statusConfig[f.status]?.color}`}>
+                    <td className="px-8 py-5">
+                      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border ${statusConfig[f.status]?.color}`}>
                         <StatusIcon size={14} />
-                        <span className="text-[11px] font-black uppercase tracking-wider">{statusConfig[f.status]?.label}</span>
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">{statusConfig[f.status]?.label}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-gray-500 font-semibold group-hover:text-emerald-600 transition-colors">
-                        <Home size={14} className="text-gray-300 group-hover:text-emerald-400" />
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-2 text-slate-400 font-bold uppercase text-[11px] tracking-wider">
+                        <Home size={14} className="text-slate-600" />
                         {f.housingUnit}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(f)} className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(f)} className="p-3 rounded-2xl bg-slate-800 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-slate-700">
                           <Pencil size={18} />
                         </button>
-                        <button onClick={() => setDeleteOpen(f._id)} className="p-2.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm">
+                        <button onClick={() => setDeleteOpen(f._id)} className="p-3 rounded-2xl bg-slate-800 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors border border-slate-700">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -215,181 +190,94 @@ export default function Flocks() {
         </div>
 
         {/* Footer & Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 border-t border-gray-100 bg-gray-50/50 italic">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-4 py-2 bg-white rounded-full border border-gray-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-10 py-6 border-t border-slate-700/50 bg-slate-800/30">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] px-6 py-3 bg-slate-900/50 rounded-full border border-slate-700/50 drop-shadow-sm">
             {(page - 1) * perPage + 1} – {Math.min(page * perPage, filtered.length)} / {filtered.length} Podalar
           </p>
-          <div className="flex items-center gap-1.5 mt-4 sm:mt-0">
-            <button 
-              disabled={page === 1} 
-              onClick={() => setPage(page - 1)} 
-              className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-emerald-600 hover:border-emerald-200 disabled:opacity-30 transition-all font-bold"
-            >
-              Oldingi
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button 
-                key={i} 
-                onClick={() => setPage(i + 1)} 
-                className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i + 1 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white border border-gray-100 text-gray-400 hover:bg-gray-50'}`}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button 
-              disabled={page === totalPages} 
-              onClick={() => setPage(page + 1)} 
-              className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-emerald-600 hover:border-emerald-200 disabled:opacity-30 transition-all font-bold"
-            >
-              Keyingi
-            </button>
+          <div className="flex gap-2 mt-4 sm:mt-0">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-6 py-3 rounded-2xl bg-slate-800/80 border border-slate-700/50 text-slate-400 font-bold hover:text-indigo-400 transition-colors disabled:opacity-30">Oldingi</button>
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button key={i} onClick={() => setPage(i + 1)} className={`w-11 h-11 rounded-2xl font-black text-sm transition-all ${page === i + 1 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-800/80 border border-slate-700/50 text-slate-400 hover:bg-slate-700'}`}>
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-6 py-3 rounded-2xl bg-slate-800/80 border border-slate-700/50 text-slate-400 font-bold hover:text-indigo-400 transition-colors disabled:opacity-30">Keyingi</button>
           </div>
         </div>
       </div>
 
       {/* Save/Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#1a1a2e]/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2rem] w-full max-w-xl max-h-[90vh] overflow-y-auto p-1 border border-white/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white">
-                    <Bird size={20} />
-                  </div>
-                  <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">{editing ? 'Podani Tahrirlash' : 'Yangi Poda Qo\'shish'}</h3>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95">
+            <div className="px-10 py-8 border-b border-slate-800 flex justify-between items-center bg-slate-800/30">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30 shadow-inner">
+                  <Bird size={28} />
                 </div>
-                <button onClick={() => setModalOpen(false)} className="p-2.5 hover:bg-gray-100 rounded-2xl transition-colors text-gray-400 hover:text-gray-600">
-                  <X size={20} />
-                </button>
+                <div>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter">{editing ? 'Podani Tahrirlash' : 'Poda Qo\'shish'}</h3>
+                  <p className="text-[10px] text-indigo-300 font-black uppercase tracking-[0.2em] mt-1">Yangi hayot avlodi</p>
+                </div>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="p-3 text-slate-500 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSave} className="p-10 space-y-8">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2 col-span-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Poda ID</label>
+                  <input value={form.flockId} onChange={e => setForm({...form, flockId: e.target.value.toUpperCase()})} placeholder="P-001" required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 text-white font-mono placeholder:text-slate-600 transition-all shadow-inner" />
+                </div>
+                <div className="space-y-2 col-span-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Poda Nomi</label>
+                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Oq Tovuqlar" required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 text-white font-black placeholder:text-slate-600 transition-all shadow-inner uppercase" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Zoti</label>
+                  <input value={form.breed} onChange={e => setForm({...form, breed: e.target.value})} placeholder="Broiler" required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 text-slate-200 font-bold placeholder:text-slate-600 transition-all shadow-inner uppercase" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Soni (Ta)</label>
+                  <input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} placeholder="0" required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 text-white font-black text-xl placeholder:text-slate-600 transition-all shadow-inner" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Keliish sanasi</label>
+                  <input type="date" value={form.arrivalDate} onChange={e => setForm({...form, arrivalDate: e.target.value})} required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 text-slate-300 font-mono transition-all shadow-inner" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Joylashuv (Katak)</label>
+                  <input value={form.housingUnit} onChange={e => setForm({...form, housingUnit: e.target.value})} placeholder="Block-A" required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 text-slate-200 font-bold placeholder:text-slate-600 transition-all shadow-inner uppercase" />
+                </div>
               </div>
               
-              <form onSubmit={handleSave} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 col-span-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Poda ID</label>
-                    <input 
-                      value={form.flockId} 
-                      onChange={e => setForm({...form, flockId: e.target.value.toUpperCase()})} 
-                      placeholder="Masalan: P-001" 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-bold text-gray-700" 
-                    />
-                  </div>
-                  <div className="space-y-1.5 col-span-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Poda Nomi</label>
-                    <input 
-                      value={form.name} 
-                      onChange={e => setForm({...form, name: e.target.value})} 
-                      placeholder="Masalan: Oq Tovuqlar" 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-extrabold text-gray-800" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Zoti</label>
-                    <input 
-                      value={form.breed} 
-                      onChange={e => setForm({...form, breed: e.target.value})} 
-                      placeholder="Masalan: Broiler" 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-bold text-gray-700" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Soni</label>
-                    <input 
-                      type="number" 
-                      value={form.quantity} 
-                      onChange={e => setForm({...form, quantity: e.target.value})} 
-                      placeholder="0" 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-bold text-gray-700" 
-                    />
-                  </div>
-                  <div className="space-y-1.5 text-nowrap">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest text-nowrap">Yoshi (Kun)</label>
-                    <input 
-                      type="number" 
-                      value={form.ageInDays} 
-                      onChange={e => setForm({...form, ageInDays: e.target.value})} 
-                      placeholder="0" 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-bold text-gray-700" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Keliish Sanasi</label>
-                    <input 
-                      type="date" 
-                      value={form.arrivalDate} 
-                      onChange={e => setForm({...form, arrivalDate: e.target.value})} 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-bold text-gray-600" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Holati</label>
-                    <select 
-                      value={form.status} 
-                      onChange={e => setForm({...form, status: e.target.value})} 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 transition-all font-bold text-gray-700 cursor-pointer"
-                    >
-                      <option value="active">Faol</option>
-                      <option value="sold">Sotilgan</option>
-                      <option value="deceased">Nobud bo'lgan</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Joylashuv</label>
-                    <input 
-                      value={form.housingUnit} 
-                      onChange={e => setForm({...form, housingUnit: e.target.value})} 
-                      placeholder="Masalan: Barn 1" 
-                      required 
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-bold text-gray-700" 
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase ml-1 tracking-widest">Izohlar</label>
-                  <textarea 
-                    value={form.notes} 
-                    onChange={e => setForm({...form, notes: e.target.value})} 
-                    placeholder="Qo'shimcha tafsilotlar..." 
-                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 font-medium text-gray-700" 
-                    rows={3} 
-                  />
-                </div>
-                <button type="submit" className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl font-black text-base shadow-xl shadow-emerald-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
-                  {editing ? 'O\'zgarishlarni Saqlash' : 'Poda Qo\'shish'}
+              <div className="pt-6 border-t border-slate-800 flex gap-4">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-5 rounded-2xl font-black text-slate-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 uppercase tracking-widest text-xs transition-colors">Bekor Qilish</button>
+                <button type="submit" className="flex-[2] py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-indigo-500/20 active:translate-y-0.5 transition-all">
+                  {editing ? 'Yangilash' : 'Yangi Poda Qo\'shish'}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       {deleteOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#1a1a2e]/60 backdrop-blur-sm p-4 flex-col gap-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center border border-rose-100 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 mx-auto bg-rose-50 rounded-[2rem] flex items-center justify-center mb-6 border border-rose-100 shadow-inner">
-              <Trash2 size={32} className="text-rose-500" />
-            </div>
-            <h3 className="text-2xl font-black text-gray-800 mb-2 tracking-tighter uppercase italic">O'chirishni tasdiqlang</h3>
-            <p className="text-gray-400 text-sm mb-8 font-medium italic">Ushbu podani o'chirishni xohlaysizmi? Ushbu amalni ortga qaytarib bo'lmaydi.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteOpen(null)} className="flex-1 py-4 border-2 border-gray-100 rounded-2xl text-gray-400 font-bold hover:bg-gray-50 transition-all active:scale-95">Bekor qilish</button>
-              <button 
-                onClick={() => handleDelete(deleteOpen)} 
-                className="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-black shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all active:scale-95"
-              >
-                O'chirish
-              </button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in">
+          <div className="bg-slate-900 rounded-[3.5rem] p-12 max-w-sm w-full text-center border border-slate-800 shadow-2xl relative overflow-hidden group">
+            <div className="w-24 h-24 mx-auto bg-rose-500/10 rounded-[2.5rem] flex items-center justify-center text-rose-500 mb-8 border border-rose-500/20 shadow-inner scale-110 group-hover:-rotate-12 transition-transform duration-500"><Trash2 size={40}/></div>
+            <h3 className="text-3xl font-black text-white mb-3 uppercase tracking-tighter">O'chirish?</h3>
+            <p className="text-slate-400 text-sm mb-12 font-bold leading-relaxed px-4">Podani butunlay olib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.</p>
+            <div className="flex gap-4">
+              <button onClick={() => setDeleteOpen(null)} className="flex-1 py-5 border border-slate-700 rounded-3xl font-black text-slate-400 bg-slate-800 hover:bg-slate-700 uppercase text-[10px] tracking-[0.3em] transition-all">Yo'q</button>
+              <button onClick={() => handleDelete(deleteOpen)} className="flex-1 py-5 bg-rose-600 text-white rounded-3xl font-black hover:bg-rose-500 shadow-xl shadow-rose-500/30 uppercase text-[10px] tracking-[0.3em] transition-all">Ha, o'chir</button>
             </div>
           </div>
-          <div className="text-white/40 text-[10px] font-bold uppercase tracking-[0.5em] animate-pulse italic">Diqqat bilan qaror qiling</div>
         </div>
       )}
     </div>
