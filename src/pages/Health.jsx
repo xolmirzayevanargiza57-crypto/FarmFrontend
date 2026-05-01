@@ -1,21 +1,17 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Plus, Pencil, Trash2, Search, X, HeartPulse, ShieldAlert, Syringe, Skull, FileText, Calendar, LayoutGrid, ClipboardCheck, Filter, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, HeartPulse, Filter, Calendar, LayoutGrid, Stethoscope, AlertTriangle, Syringe, Activity } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL || '';
 
-const typeConfig = {
-  vaccination: { color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: Syringe, label: 'Emlash' },
-  checkup: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: ClipboardCheck, label: 'Tekshiruv' },
-  medication: { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: PillIcon, label: 'Dori berish' },
-  mortality: { color: 'bg-rose-100 text-rose-700 border-rose-200', icon: Skull, label: 'O\'lim holati' },
-  disease: { color: 'bg-indigo-100 text-indigo-700 border-indigo-200', icon: ShieldAlert, label: 'Kasallik' }
+const typeConfig = { 
+  disease: { color: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: AlertTriangle, label: 'Kasallik' }, 
+  vaccination: { color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20', icon: Syringe, label: 'Emlash' }, 
+  mortality: { color: 'bg-slate-700/50 text-slate-300 border-slate-600/50', icon: Activity, label: 'O\'lim' } 
 };
 
-function PillIcon({size}) { return <div style={{width:size, height:size}} className="border-2 border-current rounded-full flex items-center justify-center font-bold text-[8px] leading-none">💊</div>; }
-
-const emptyRecord = { flockId: '', date: '', recordType: 'checkup', description: '', mortalityCount: 0, nextCheckDate: '', notes: '' };
+const emptyRecord = { flockId: '', date: '', recordType: 'vaccination', description: '', treatment: '', mortalityCount: '', nextCheckDate: '' };
 
 export default function Health() {
   const [records, setRecords] = useState([]);
@@ -28,6 +24,7 @@ export default function Health() {
   const [deleteOpen, setDeleteOpen] = useState(null);
   const [form, setForm] = useState(emptyRecord);
   const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
   const perPage = 10;
 
   const fetchData = async () => {
@@ -38,163 +35,176 @@ export default function Health() {
       ]);
       setRecords(r.data);
       setFlocks(f.data);
-    } catch { toast.error('Yuklanmadi'); }
+    } catch { toast.error("Ma'lumot yuklashda xatolik"); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, []);
 
   const filtered = records.filter(r =>
-    (r.flockId?.name || '').toLowerCase().includes(search.toLowerCase()) &&
+    (r.description || '').toLowerCase().includes(search.toLowerCase()) &&
     (typeFilter ? r.recordType === typeFilter : true)
   );
-  const totalPages = Math.ceil(filtered.length / perPage);
+  const totalPages = Math.ceil(filtered.length / perPage) || 1;
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
   const openAdd = () => { setForm({ ...emptyRecord, date: new Date().toISOString().slice(0, 10) }); setEditing(null); setModalOpen(true); };
-  const openEdit = (r) => { setForm({ ...r, flockId: r.flockId?._id, date: r.date?.slice(0, 10), nextCheckDate: r.nextCheckDate?.slice(0, 10) }); setEditing(r._id); setModalOpen(true); };
+  const openEdit = (r) => { setForm({ ...r, flockId: r.flockId?._id, date: r.date?.slice(0, 10), nextCheckDate: r.nextCheckDate?.slice(0, 10) || '' }); setEditing(r._id); setModalOpen(true); };
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
       if (editing) {
         await axios.put(`${API}/api/health/${editing}`, form);
-        toast.success('Yangilandi');
+        toast.success("Yozuv yangilandi");
       } else {
         await axios.post(`${API}/api/health`, form);
-        toast.success('Yozildi');
+        toast.success("Yangi yozuv qo'shildi");
       }
       setModalOpen(false);
       fetchData();
-    } catch { toast.error('Xatolik'); }
+    } catch (err) { toast.error("Xatolik yuz berdi"); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${API}/api/health/${id}`);
-      toast.success('O\'chirildi');
-      setDeleteOpen(null);
-      fetchData();
-    } catch { toast.error('Xatolik'); }
+    try { await axios.delete(`${API}/api/health/${id}`); toast.success("Yozuv o'chirildi"); setDeleteOpen(null); fetchData(); } 
+    catch { toast.error("O'chirishda xatolik"); }
   };
 
-  if (loading) return <div className="flex flex-col items-center justify-center py-24 gap-3 bg-white/50 animate-pulse"><div className="h-14 w-14 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div><p className="text-rose-600 font-black uppercase text-[10px] tracking-widest italic">Yuklanmoqda...</p></div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20 min-h-[50vh]">
+      <div className="animate-spin h-14 w-14 border-4 border-rose-500 border-t-transparent rounded-full shadow-lg shadow-rose-500/20"></div>
+    </div>
+  );
 
   return (
-    <div className="space-y-6 lg:ml-0 ml-10 p-2 italic font-bold">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[2.5rem] shadow-sm border border-rose-50 italic">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-[1.5rem] bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100 shadow-inner group">
-            <HeartPulse size={32} className="group-hover:scale-110 transition-transform" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-800 tracking-tighter uppercase">SOG'LIQ <span className="text-rose-600">JURNALI</span></h1>
-            <p className="text-sm font-bold text-gray-400">Kasalliklar, vaksinalar va tekshiruvlar</p>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tighter uppercase mb-1 flex items-center gap-3">
+            Sog'liq <span className="text-rose-500">Muhofazasi</span>
+          </h1>
+          <p className="text-sm font-bold text-slate-500 tracking-wide">Fermadagi tibbiy nazorat ro'yxatlari</p>
         </div>
-        <button onClick={openAdd} className="flex items-center justify-center gap-3 bg-gradient-to-br from-rose-500 to-rose-700 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-rose-500/30 hover:-translate-y-1 active:scale-95 transition-all uppercase text-sm tracking-tighter">
-          <Plus size={22} className="stroke-[3]" /> Yangi Qayd Qo'shish
+        <button onClick={openAdd} className="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-xl shadow-rose-600/20 active:scale-95">
+          <Plus size={18} /> Yangi Yozuv
         </button>
       </div>
 
-      {/* Analytics Mini-Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Analytics Mini-Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "Jami O'lim", value: filtered.reduce((s,r)=>s+(r.mortalityCount||0),0), icon: Skull, color: 'text-rose-600', bg: 'bg-rose-50' },
-          { label: "Vaksinalar", value: filtered.filter(r=>r.recordType === 'vaccination').length, icon: Syringe, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: "Kasalliklar", value: filtered.filter(r=>r.recordType === 'disease').length, icon: ShieldAlert, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: "Kelgusi rejalar", value: filtered.filter(r=>r.nextCheckDate && new Date(r.nextCheckDate) > new Date()).length, icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' }
+          { label: "Jami Emlashlar", value: filtered.filter(f=>f.recordType==='vaccination').length, icon: Syringe, color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
+          { label: "Kasallik Holatlari", value: filtered.filter(f=>f.recordType==='disease').length, icon: AlertTriangle, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+          { label: "O'lim Holati", value: filtered.reduce((s,r)=>s+(r.mortalityCount||0),0), icon: Activity, color: 'text-slate-400', bg: 'bg-slate-700/30', border: 'border-slate-600/50' }
         ].map((s,i)=>(
-          <div key={i} className="bg-white p-5 rounded-[2rem] border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
-            <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center ${s.color} z-10 transition-transform group-hover:scale-110 shadow-inner`}><s.icon size={26} /></div>
-            <div className="z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{s.label}</p>
-              <p className={`text-2xl font-black ${s.color} font-mono tracking-tighter`}>{s.value.toLocaleString()}</p>
+          <div key={i} className={`p-6 rounded-[2rem] border ${s.border} ${s.bg} flex items-center gap-4 shadow-lg group hover:-translate-y-1 transition-transform`}>
+            <div className={`w-14 h-14 shrink-0 rounded-2xl bg-slate-900/50 flex items-center justify-center ${s.color} border border-white/5`}>
+              <s.icon size={26} strokeWidth={2.5}/>
             </div>
-            <div className={`absolute -right-4 -bottom-4 w-20 h-20 ${s.color} opacity-[0.03] transform rotate-12 group-hover:scale-150 transition-transform`}><s.icon size={80} /></div>
+            <div>
+              <p className={`text-2xl font-black ${s.color} tracking-tighter leading-none mb-1`}>{s.value}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4">
+      {/* Control Bar */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1 group">
-          <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500">
+            <Search size={20} className="group-focus-within:text-rose-500 transition-colors" />
+          </div>
           <input 
             value={search} 
             onChange={e => { setSearch(e.target.value); setPage(1); }} 
-            placeholder="Poda nomi bo'yicha tahlil qilish..." 
-            className="w-full pl-14 pr-6 py-4.5 border-2 border-gray-100 rounded-3xl outline-none focus:border-rose-300 focus:ring-8 focus:ring-rose-500/5 transition-all text-gray-700 bg-white shadow-sm font-black"
+            placeholder="Tavsif orqali qidirish..." 
+            className="w-full pl-14 pr-6 py-4 bg-slate-900 border border-slate-700 rounded-2xl outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all text-slate-200 font-bold placeholder:text-slate-600"
           />
         </div>
-        <div className="relative">
-          <Filter size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="relative min-w-[200px] md:w-64">
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500">
+            <Filter size={20} />
+          </div>
           <select 
             value={typeFilter} 
             onChange={e => { setTypeFilter(e.target.value); setPage(1); }} 
-            className="pl-14 pr-12 py-4.5 bg-white border-2 border-gray-100 rounded-3xl outline-none font-black text-gray-600 appearance-none cursor-pointer focus:border-rose-300 transition-all shadow-sm"
+            className="w-full pl-14 pr-10 py-4 bg-slate-900 border border-slate-700 rounded-2xl outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/10 transition-all font-bold text-slate-300 appearance-none cursor-pointer"
           >
             <option value="">Barcha turlar</option>
-            {Object.keys(typeConfig).map(k => <option key={k} value={k}>{typeConfig[k].label}</option>)}
+            <option value="vaccination" className="bg-slate-900">Emlashlar</option>
+            <option value="disease" className="bg-slate-900">Kasalliklar</option>
+            <option value="mortality" className="bg-slate-900">O'lim holati</option>
           </select>
         </div>
       </div>
 
-      {/* Excel Style Data Table */}
-      <div className="bg-white rounded-[3rem] shadow-2xl shadow-gray-200/50 border border-gray-50 overflow-hidden relative">
+      {/* Modern Table */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100 italic">
-                <th className="px-8 py-6 text-gray-400 font-bold uppercase tracking-wider text-xs"><div className="flex items-center gap-2"><Calendar size={14}/> Sana</div></th>
-                <th className="px-8 py-6 text-gray-800 font-black uppercase tracking-widest text-xs"><div className="flex items-center gap-2"><LayoutGrid size={14}/> Poda</div></th>
-                <th className="px-8 py-6 text-gray-500 font-bold uppercase tracking-wider text-xs"><div className="flex items-center gap-2"><HeartPulse size={14}/> Qayd turi</div></th>
-                <th className="px-8 py-6 text-gray-500 font-bold uppercase tracking-wider text-xs"><div className="flex items-center gap-2"><FileText size={14}/> Tavsif</div></th>
-                <th className="px-8 py-6 text-rose-600 font-black uppercase tracking-wider text-xs text-center"><div className="flex items-center justify-center gap-2"><Skull size={14}/> O'lim</div></th>
-                <th className="px-8 py-6 text-gray-500 font-bold uppercase tracking-wider text-xs text-right">Amallar</th>
+              <tr className="bg-slate-800/50 border-b border-slate-800">
+                <th className="px-6 py-5 text-slate-400 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap"><div className="flex items-center gap-2"><Calendar size={14}/> Sana</div></th>
+                <th className="px-6 py-5 text-white font-black uppercase tracking-[0.2em] text-[10px]"><div className="flex items-center gap-2"><LayoutGrid size={14}/> Poda</div></th>
+                <th className="px-6 py-5 text-slate-400 font-bold uppercase tracking-widest text-[10px] whitespace-nowrap"><div className="flex items-center gap-2"><HeartPulse size={14}/> Turi</div></th>
+                <th className="px-6 py-5 text-slate-400 font-bold uppercase tracking-widest text-[10px]"><div className="flex items-center gap-2"><Stethoscope size={14}/> Tavsif / Muolaja</div></th>
+                <th className="px-6 py-5 text-emerald-400 font-bold uppercase tracking-widest text-[10px]"><div className="flex items-center gap-2"><Calendar size={14}/> Keyingi Ko'rik</div></th>
+                <th className="px-6 py-5 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-right">Amallar</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {paginated.map((r, idx) => {
-                const TConfig = typeConfig[r.recordType] || { label: r.recordType, icon: FileText, color: 'bg-gray-100' };
+            <tbody className="divide-y divide-slate-800/50">
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-16 text-center">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Ma'lumot topilmadi</p>
+                  </td>
+                </tr>
+              ) : paginated.map((r) => {
+                const RecordIcon = typeConfig[r.recordType]?.icon || Activity;
                 return (
-                  <tr key={r._id} className={`group hover:bg-rose-50/30 transition-all duration-300 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/5'}`}>
-                    <td className="px-8 py-6">
+                  <tr key={r._id} className="group hover:bg-slate-800/30 transition-colors duration-200">
+                    <td className="px-6 py-4">
+                      <span className="font-mono text-[10px] text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{r.date?.slice(0, 10)}</span>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-mono text-xs font-black text-gray-500 bg-white border border-gray-100 px-3 py-1 rounded-xl shadow-sm inline-block w-fit">{r.date?.slice(0, 10)}</span>
-                        {r.nextCheckDate && (
-                          <span className="text-[9px] text-blue-500 mt-1 uppercase tracking-tighter">Navbatdagi: {r.nextCheckDate.slice(0,10)}</span>
-                        )}
+                        <span className="text-white font-black text-sm uppercase tracking-wide">{r.flockId?.name || 'O\'chirilgan'}</span>
+                        <span className="text-[10px] text-slate-500 font-bold tracking-widest">{r.flockId?.breed}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-col">
-                        <span className="text-gray-800 font-black text-base uppercase tracking-tighter group-hover:text-rose-600 transition-colors">{r.flockId?.name || '---'}</span>
-                        <span className="text-[10px] text-gray-400 uppercase font-sans tracking-widest">{r.flockId?.breed}</span>
+                    <td className="px-6 py-4">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${typeConfig[r.recordType]?.color}`}>
+                        <RecordIcon size={12} strokeWidth={3} />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">{typeConfig[r.recordType]?.label}</span>
                       </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-[1.25rem] border ${TConfig.color}`}>
-                        <TConfig.icon size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{TConfig.label}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 max-w-[250px]">
-                      <p className="text-gray-600 text-xs font-bold leading-relaxed line-clamp-2 italic">{r.description}</p>
-                    </td>
-                    <td className="px-8 py-6 text-center">
-                      {r.mortalityCount > 0 ? (
-                        <div className="flex flex-col items-center">
-                          <span className="text-xl font-black text-rose-600 font-mono tracking-tighter italic">-{r.mortalityCount}</span>
-                          <span className="text-[9px] text-rose-400 uppercase tracking-widest font-black leading-none">O'lim</span>
+                      {r.recordType === 'mortality' && (
+                        <div className="mt-2 text-[10px] text-slate-400 bg-slate-800 px-2 py-1 rounded inline-block font-mono border border-slate-700">
+                           O'lim: <span className="text-rose-400 font-bold">{r.mortalityCount}</span> ta
                         </div>
-                      ) : <span className="text-gray-300 font-mono text-xl">0</span>}
+                      )}
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
-                        <button onClick={() => openEdit(r)} className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white shadow-sm transition-all"><Pencil size={20} /></button>
-                        <button onClick={() => setDeleteOpen(r._id)} className="p-3.5 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-600 hover:text-white shadow-sm transition-all"><Trash2 size={20} /></button>
+                    <td className="px-6 py-4">
+                      <p className="text-slate-200 font-bold text-sm mb-1">{r.description || '-'}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">{r.treatment ? `Muolaja: ${r.treatment}` : ''}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      {r.nextCheckDate ? (
+                        <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">{r.nextCheckDate?.slice(0,10)}</span>
+                      ) : <span className="text-slate-600">-</span>}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => openEdit(r)} className="p-2.5 rounded-xl bg-slate-800 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-slate-700">
+                          <Pencil size={16} />
+                        </button>
+                        <button onClick={() => setDeleteOpen(r._id)} className="p-2.5 rounded-xl bg-slate-800 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors border border-slate-700">
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -204,90 +214,110 @@ export default function Health() {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-10 py-6 border-t border-gray-100 bg-gray-50/50">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-6 py-3 bg-white rounded-[2rem] border border-gray-200 shadow-sm italic">
-            {(page - 1) * perPage + 1} – {Math.min(page * perPage, filtered.length)} / {filtered.length} SOG'LIQ QAYDLARI
+        {/* Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-800/20">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            {filtered.length > 0 ? (page - 1) * perPage + 1 : 0} – {Math.min(page * perPage, filtered.length)} / {filtered.length} Fallowlar
           </p>
-          <div className="flex gap-2 mt-4 sm:mt-0">
-            <button disabled={page === 1} onClick={() => setPage(page-1)} className="px-6 py-3 bg-white rounded-2xl border border-gray-100 text-xs font-black text-gray-400 hover:text-rose-600 hover:border-rose-200 disabled:opacity-30 transition-all shadow-sm">Oldingi</button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button key={i} onClick={() => setPage(i+1)} className={`w-12 h-12 rounded-2xl font-black text-sm transition-all ${page === i+1 ? 'bg-rose-500 text-white shadow-xl shadow-rose-500/30' : 'bg-white border border-gray-100 text-gray-400 hover:bg-gray-100'}`}>{i+1}</button>
-            ))}
-            <button disabled={page === totalPages} onClick={() => setPage(page+1)} className="px-6 py-3 bg-white rounded-2xl border border-gray-100 text-xs font-black text-gray-400 hover:text-rose-600 hover:border-rose-200 disabled:opacity-30 transition-all shadow-sm">Keyingi</button>
+          <div className="flex items-center gap-2 mt-4 sm:mt-0">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 font-bold hover:text-rose-500 transition-colors disabled:opacity-50 text-sm">Orqaga</button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button key={i} onClick={() => setPage(i + 1)} className={`w-9 h-9 rounded-xl font-black text-xs transition-all ${page === i + 1 ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20' : 'bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700'}`}>
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 font-bold hover:text-rose-500 transition-colors disabled:opacity-50 text-sm">Oldinga</button>
           </div>
         </div>
       </div>
 
       {/* Save Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[3rem] w-full max-w-xl p-0 shadow-2xl border border-white/20 animate-in zoom-in-95 overflow-hidden italic font-bold">
-            <div className="bg-rose-500 p-8 text-white flex justify-between items-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full translate-x-12 -translate-y-12 animate-pulse"></div>
-              <div className="flex items-center gap-4 relative z-10">
-                <HeartPulse size={32} className="animate-bounce" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={() => setModalOpen(false)}>
+          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="px-8 py-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-500 flex items-center justify-center border border-rose-500/30">
+                  <HeartPulse size={24} />
+                </div>
                 <div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter">{editing ? 'Qaydni tahrirlash' : 'Yangi salomatlik qaydi'}</h3>
-                  <p className="text-[10px] opacity-80 font-black tracking-widest uppercase">Fermani himoya qilish va nazorat</p>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight">{editing ? 'Yozuvni Tahrirlash' : 'Yangi Yozuv'}</h3>
+                  <p className="text-[10px] text-rose-500 font-black uppercase tracking-widest mt-1">Tibbiy Nazorat</p>
                 </div>
               </div>
-              <button onClick={() => setModalOpen(false)} className="p-3 hover:bg-white/20 rounded-2xl transition-all relative z-10"><X size={24} /></button>
+              <button onClick={() => setModalOpen(false)} className="p-2 text-slate-500 hover:text-white bg-slate-800 rounded-xl transition-colors">
+                <X size={20} />
+              </button>
             </div>
             
-            <form onSubmit={handleSave} className="p-10 space-y-8 bg-[#fafafa]">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-1.5 col-span-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Poda tanlash</label>
-                  <select value={form.flockId} onChange={e => setForm({...form, flockId: e.target.value})} required className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-8 focus:ring-rose-500/5 transition-all text-gray-700 font-black shadow-sm">
+            <form onSubmit={handleSave} className="p-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Poda tanlash</label>
+                  <select value={form.flockId} onChange={e => setForm({...form, flockId: e.target.value})} required className="w-full px-5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 text-white font-black transition-colors">
                     <option value="">Podani tanlang</option>
-                    {flocks.map(f => <option key={f._id} value={f._id}>{f.name}</option>)}
+                    {flocks.map(f => <option key={f._id} value={f._id} className="bg-slate-900">{f.name}</option>)}
                   </select>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Sana</label>
-                  <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-8 focus:ring-rose-500/5 transition-all text-gray-700 font-mono shadow-sm" />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sana</label>
+                  <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required className="w-full px-5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 text-white font-mono transition-colors" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Qayd turi</label>
-                  <select value={form.recordType} onChange={e => setForm({...form, recordType: e.target.value})} className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-8 focus:ring-rose-500/5 transition-all text-gray-700 font-black shadow-sm uppercase">
-                    {Object.keys(typeConfig).map(k => <option key={k} value={k}>{typeConfig[k].label}</option>)}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hodisa turi</label>
+                  <select value={form.recordType} onChange={e => setForm({...form, recordType: e.target.value})} className="w-full px-5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 text-slate-200 font-bold transition-colors">
+                    <option value="vaccination" className="bg-slate-900">Emlash</option>
+                    <option value="disease" className="bg-slate-900">Kasallik</option>
+                    <option value="mortality" className="bg-slate-900">O'lim holati</option>
                   </select>
                 </div>
+
                 {form.recordType === 'mortality' && (
-                  <div className="space-y-1.5 col-span-2">
-                    <label className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] ml-1">O'lim soni (Tovoqlar)</label>
-                    <input type="number" value={form.mortalityCount} onChange={e => setForm({...form, mortalityCount: e.target.value})} placeholder="0" className="w-full px-6 py-5 bg-rose-50/50 border border-rose-100 rounded-2xl outline-none focus:ring-8 focus:ring-rose-500/5 transition-all text-rose-700 font-black text-2xl shadow-sm" />
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest">O'lim Soni (Ta)</label>
+                    <input type="number" value={form.mortalityCount} onChange={e => setForm({...form, mortalityCount: e.target.value})} placeholder="Necha qush nobud bo'ldi" className="w-full px-5 py-3 bg-rose-500/10 border border-rose-500/30 rounded-xl outline-none focus:ring-2 focus:ring-rose-500/30 text-rose-400 font-black text-xl transition-colors" />
                   </div>
                 )}
-                <div className="space-y-1.5 col-span-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Tavsif (Nima bo'ldi?)</label>
-                  <input value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Masalan: Gumboro vaksina berildi yoki podada tumov aniqlandi" required className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-8 focus:ring-rose-500/5 transition-all text-gray-800 font-bold shadow-sm italic" />
+
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sabab / Tavsif</label>
+                  <input value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Nima qilinganini batafsil yozing" required className="w-full px-5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 text-white font-bold transition-colors" />
                 </div>
-                <div className="space-y-1.5 col-span-2">
-                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2"><AlertTriangle size={14}/> Keyingi tekshiruv (Ixtiyoriy)</label>
-                  <input type="date" value={form.nextCheckDate} onChange={e => setForm({...form, nextCheckDate: e.target.value})} className="w-full px-6 py-5 bg-blue-50/20 border border-blue-100 rounded-2xl outline-none focus:ring-8 focus:ring-blue-500/5 transition-all text-blue-700 font-mono shadow-sm" />
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Muolaja turi</label>
+                  <input value={form.treatment} onChange={e => setForm({...form, treatment: e.target.value})} placeholder="Qaysi dori berildi (Ixtiyoriy)" className="w-full px-5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 text-slate-200 font-bold transition-colors" />
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Keyingi tekshiruv (Ixtiyoriy)</label>
+                  <input type="date" value={form.nextCheckDate} onChange={e => setForm({...form, nextCheckDate: e.target.value})} className="w-full px-5 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 text-emerald-400 font-mono transition-colors" />
+                </div>
+
               </div>
-              <button type="submit" className="w-full py-6 bg-gradient-to-r from-rose-500 to-rose-700 text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-rose-500/30 hover:scale-[1.02] active:scale-100 transition-all uppercase tracking-tighter">
-                {editing ? 'O\'zgartirishlarni Saqlash' : 'Ma\'lumotni Saqlash'}
-              </button>
+              <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col-reverse sm:flex-row gap-4">
+                <button type="button" onClick={() => setModalOpen(false)} disabled={saving} className="w-full sm:w-auto px-8 py-4 rounded-xl font-black text-slate-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 uppercase tracking-widest text-xs transition-colors">Bekor Qilish</button>
+                <button type="submit" disabled={saving} className="w-full px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-rose-600/20 transition-all disabled:opacity-50">
+                  {saving ? 'Saqlanmoqda...' : (editing ? 'Yangilash' : 'Saqlash')}
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Dialog */}
       {deleteOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-md p-4 animate-in fade-in italic">
-          <div className="bg-white rounded-[3.5rem] p-12 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 border border-rose-50 font-black relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
-            <div className="w-24 h-24 mx-auto bg-rose-50 rounded-[2.5rem] flex items-center justify-center text-rose-500 mb-8 border border-rose-100 shadow-inner group-hover:rotate-12 transition-transform"><Trash2 size={40}/></div>
-            <h3 className="text-3xl font-black text-gray-800 mb-3 uppercase tracking-tighter">O'chirib tashlaymi?</h3>
-            <p className="text-gray-400 text-sm mb-12 font-bold leading-relaxed px-4">Bu yozuvni o'chirsangiz, uni qayta tiklab bo'lmaydi. Ishonchingiz komilmi?</p>
-            <div className="flex gap-4">
-              <button onClick={() => setDeleteOpen(null)} className="flex-1 py-5 border-2 border-gray-100 rounded-3xl font-black text-gray-400 hover:bg-gray-50 uppercase text-[10px] tracking-[0.3em] transition-all active:scale-95">Yo'q</button>
-              <button onClick={() => handleDelete(deleteOpen)} className="flex-1 py-5 bg-rose-500 text-white rounded-3xl font-black hover:bg-rose-600 shadow-xl shadow-rose-500/30 uppercase text-[10px] tracking-[0.3em] transition-all active:scale-95">Ha, albatta</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={() => setDeleteOpen(null)}>
+          <div className="bg-slate-900 rounded-[2rem] p-8 max-w-sm w-full text-center border border-slate-800 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="w-20 h-20 mx-auto bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500 mb-6 border border-rose-500/20 shadow-inner"><Trash2 size={32}/></div>
+            <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">O'chirish?</h3>
+            <p className="text-slate-400 text-sm mb-8 font-medium">Ushbu yozuvni abadiyga o'chirasizmi?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteOpen(null)} className="flex-1 py-4 border border-slate-700 rounded-xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all">Yo'q</button>
+              <button onClick={() => handleDelete(deleteOpen)} className="flex-1 py-4 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-500 shadow-lg shadow-rose-500/20 transition-all">Ha, o'chir</button>
             </div>
           </div>
         </div>
