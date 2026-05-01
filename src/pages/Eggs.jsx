@@ -56,27 +56,17 @@ export default function Eggs() {
       }
       setModalOpen(false);
       fetchData();
-    } catch (err) { toast.error(err.response?.data?.message || 'Xatolik yuz berdi'); }
+    } catch (err) { toast.error('Xatolik yuz berdi'); }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${API}/api/eggs/${id}`);
-      toast.success('Yozuv o\'chirildi');
-      setDeleteOpen(null);
-      fetchData();
-    } catch { toast.error('O\'chirishda xatolik yuz berdi'); }
+    try { await axios.delete(`${API}/api/eggs/${id}`); toast.success('Yozuv o\'chirildi'); setDeleteOpen(null); fetchData(); } 
+    catch { toast.error('O\'chirishda xatolik yuz berdi'); }
   };
 
   const exportToCSV = () => {
     const headers = ['Poda', 'Sana', 'Yig\'ilgan Tuxum', 'Singan Tuxum', 'Grade'];
-    const rows = filtered.map(r => [
-      r.flockId?.name,
-      r.date?.slice(0, 10),
-      r.eggsCollected,
-      r.brokenEggs,
-      r.category
-    ]);
+    const rows = filtered.map(r => [r.flockId?.name, r.date?.slice(0, 10), r.eggsCollected, r.brokenEggs, r.category]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -84,121 +74,128 @@ export default function Eggs() {
     link.setAttribute("href", url);
     link.setAttribute("download", `tuxum_hisoboti_${new Date().toLocaleDateString()}.csv`);
     link.click();
-    toast.success('Excel (CSV) fayl yuklab olindi!');
+    toast.success('Excel fayl yuklab olindi!');
   };
 
-  if (loading) return <div className="flex flex-col items-center justify-center py-20 gap-3"><div className="animate-spin h-12 w-12 border-4 border-amber-500 border-t-transparent rounded-full"></div><p className="text-amber-700 font-bold animate-pulse text-xs uppercase tracking-widest">Yuklanmoqda...</p></div>;
+  if (loading) return <div className="flex flex-col items-center justify-center py-20 gap-3"><div className="animate-spin h-14 w-14 border-4 border-amber-500 border-t-transparent rounded-full shadow-lg shadow-amber-500/20"></div></div>;
 
   return (
-    <div className="space-y-6 lg:ml-0 ml-10 p-2">
-      {/* Enhanced Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100 italic">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100 shadow-sm">
-            <Egg size={28} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-800 tracking-tight">TUXUM <span className="text-amber-500 uppercase">ISHLAB CHIQARISH</span></h1>
-            <p className="text-sm font-medium text-gray-500">Kunlik ishlab chiqarish jurnali</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 px-2 py-4">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tighter uppercase mb-1">TUXUM <span className="text-amber-400">ISHLAB CHIQARISH</span></h1>
+          <p className="text-sm font-medium text-slate-400">Kunlik ishlab chiqarish jurnali</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={exportToCSV} className="flex items-center justify-center gap-2 bg-gray-50 text-gray-600 px-5 py-3 rounded-2xl font-bold border border-gray-200 hover:bg-gray-100 transition-all">
-            <Download size={20} /> Excel
+        <div className="flex gap-3">
+          <button onClick={exportToCSV} className="flex items-center justify-center gap-2 bg-slate-800 text-slate-300 px-6 py-4 rounded-2xl font-black border border-slate-700 hover:bg-slate-700 transition-all uppercase text-sm tracking-wider shadow-lg">
+            <Download size={18} /> Yuklab Olish
           </button>
-          <button onClick={openAdd} className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-3 rounded-2xl font-bold shadow-xl shadow-amber-500/20 hover:-translate-y-0.5 active:scale-95 transition-all">
-            <Plus size={20} /> Qiymat Qo'shish
+          <button onClick={openAdd} className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-8 py-4 rounded-2xl font-black shadow-xl shadow-amber-500/20 active:scale-95 transition-all text-sm uppercase tracking-wider">
+            <Plus size={18} /> Qiymat Qo'shish
           </button>
         </div>
       </div>
 
       {/* Analytics Mini-Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
         {[
-          { label: "Jami yig'ilgan", value: filtered.reduce((s,r)=>s+r.eggsCollected,0), icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: "Singan tuxumlar", value: filtered.reduce((s,r)=>s+(r.brokenEggs||0),0), icon: FileText, color: 'text-rose-600', bg: 'bg-rose-50' },
-          { label: "Sifatli (Grade A)", value: filtered.filter(r=>r.category === 'Grade A').length, icon: ClipboardList, color: 'text-amber-600', bg: 'bg-amber-50' }
+          { label: "Jami Yig'ilgan", value: filtered.reduce((s,r)=>s+r.eggsCollected,0), icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+          { label: "Singan Tuxumlar", value: filtered.reduce((s,r)=>s+(r.brokenEggs||0),0), icon: FileText, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+          { label: "Sifatli (Grade A)", value: filtered.filter(r=>r.category === 'Grade A').length, icon: ClipboardList, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' }
         ].map((s,i)=>(
-          <div key={i} className="bg-white p-4 rounded-3xl border border-gray-100 flex items-center gap-4 shadow-sm group hover:shadow-md transition-shadow italic">
-            <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center ${s.color} transition-transform group-hover:scale-110`}>
-              <s.icon size={24} />
+          <div key={i} className={`p-6 rounded-[2rem] border ${s.border} ${s.bg} flex items-center gap-4 shadow-lg backdrop-blur-md group hover:-translate-y-1 transition-transform`}>
+            <div className={`w-14 h-14 rounded-2xl bg-slate-900/50 flex items-center justify-center ${s.color} transition-transform group-hover:scale-110 shadow-inner`}>
+              <s.icon size={26} />
             </div>
             <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.label}</p>
-              <p className={`text-2xl font-black ${s.color} font-mono tracking-tighter`}>{s.value.toLocaleString()}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
+              <p className={`text-2xl font-black ${s.color} font-mono tracking-tighter drop-shadow-sm`}>{s.value.toLocaleString()}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Filter & Search */}
-      <div className="flex flex-col md:flex-row gap-3">
+      {/* Control Bar */}
+      <div className="flex flex-col md:flex-row gap-4 p-2">
         <div className="relative flex-1 group">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-amber-500 transition-colors" />
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 border-r border-slate-700 pr-3">
+            <Search size={18} className="group-focus-within:text-amber-400 transition-colors" />
+          </div>
           <input 
             value={search} 
             onChange={e => { setSearch(e.target.value); setPage(1); }} 
             placeholder="Poda nomi bo'yicha qidirish..." 
-            className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-100 rounded-2xl outline-none focus:border-amber-500/30 bg-white font-medium italic"
+            className="w-full pl-16 pr-6 py-4 bg-slate-900/50 backdrop-blur-md border border-slate-700/50 rounded-[1.5rem] outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 transition-all text-slate-200 font-medium placeholder:text-slate-500 shadow-inner"
           />
         </div>
         <div className="relative min-w-[200px]">
-          <Filter size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 border-r border-slate-700 pr-3">
+            <Filter size={18} />
+          </div>
           <select 
             value={flockFilter} 
             onChange={e => { setFlockFilter(e.target.value); setPage(1); }} 
-            className="w-full pl-10 pr-10 py-3.5 bg-white border-2 border-gray-100 rounded-2xl outline-none font-bold text-gray-600 appearance-none italic"
+            className="w-full pl-16 pr-10 py-4 bg-slate-900/50 backdrop-blur-md border border-slate-700/50 rounded-[1.5rem] outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold text-slate-300 appearance-none cursor-pointer shadow-inner"
           >
-            <option value="">Barcha podalar</option>
-            {flocks.map(f => <option key={f._id} value={f._id}>{f.name}</option>)}
+            <option value="">Barcha Podalar</option>
+            {flocks.map(f => <option key={f._id} value={f._id} className="bg-slate-900">{f.name}</option>)}
           </select>
         </div>
       </div>
 
-      {/* Excel Style Table */}
-      <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse font-sans">
+      {/* Main Table - Premium Dark Style */}
+      <div className="bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-slate-700/50 overflow-hidden shadow-2xl relative mx-2">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="overflow-x-auto relative z-10">
+          <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100 italic">
-                <th className="px-6 py-5 text-gray-400 font-bold uppercase tracking-wider text-xs"><div className="flex items-center gap-2"><Calendar size={14}/> Sana</div></th>
-                <th className="px-6 py-5 text-gray-700 font-extrabold uppercase tracking-widest text-xs"><div className="flex items-center gap-2"><LayoutGrid size={14}/> Poda Nomi</div></th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs text-center"><div className="flex items-center justify-center gap-2"><Egg size={14}/> Yig'ilgan</div></th>
-                <th className="px-6 py-5 text-rose-500/60 font-bold uppercase tracking-wider text-xs text-center"><div className="flex items-center justify-center gap-2"><TrendingUp size={14} className="rotate-180"/> Singan</div></th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs text-center text-nowrap"><div className="flex items-center justify-center gap-2"><Share2 size={14}/> Sifat (Grade)</div></th>
-                <th className="px-6 py-5 text-gray-500 font-bold uppercase tracking-wider text-xs text-right">Amallar</th>
+              <tr className="border-b border-slate-700/50 bg-slate-800/30">
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px]"><div className="flex items-center gap-2"><Calendar size={14}/> Sana</div></th>
+                <th className="px-8 py-6 text-white font-black uppercase tracking-[0.2em] text-[#10px]"><div className="flex items-center gap-2"><LayoutGrid size={14}/> Poda</div></th>
+                <th className="px-8 py-6 text-emerald-400 font-bold uppercase tracking-widest text-[#10px] text-center"><div className="flex items-center justify-center gap-2"><Egg size={14}/> Yig'ilgan</div></th>
+                <th className="px-8 py-6 text-rose-400 font-bold uppercase tracking-widest text-[#10px] text-center"><div className="flex items-center justify-center gap-2"><TrendingUp size={14} className="rotate-180"/> Singan</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px] text-center"><div className="flex items-center justify-center gap-2"><Share2 size={14}/> Sifat</div></th>
+                <th className="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[#10px] text-right">Amallar</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-800/60">
               {paginated.length === 0 ? (
-                <tr><td colSpan="6" className="px-6 py-20 text-center opacity-30 text-lg font-bold">Ma'lumot mavjud emas</td></tr>
-              ) : paginated.map((r, idx) => (
-                <tr key={r._id} className={`group hover:bg-amber-50/20 transition-all duration-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/10'}`}>
-                  <td className="px-6 py-4">
-                    <span className="font-mono text-xs font-bold text-gray-500 px-3 py-1 bg-gray-100 rounded-lg">{r.date?.slice(0, 10)}</span>
+                <tr>
+                  <td colSpan="6" className="px-6 py-20 text-center">
+                    <p className="text-xl font-bold text-slate-600 uppercase tracking-widest">Ma'lumot topilmadi</p>
                   </td>
-                  <td className="px-6 py-4">
+                </tr>
+              ) : paginated.map((r, idx) => (
+                <tr key={r._id} className={`group hover:bg-slate-800/50 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-transparent' : 'bg-slate-800/20'}`}>
+                  <td className="px-8 py-5">
+                    <span className="font-mono text-[10px] text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/50 drop-shadow-sm">{r.date?.slice(0, 10)}</span>
+                  </td>
+                  <td className="px-8 py-5">
                     <div className="flex flex-col">
-                      <span className="text-gray-800 font-black text-base uppercase tracking-tighter group-hover:text-amber-600 transition-colors">{r.flockId?.name || 'O\'chirilgan'}</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase">{r.flockId?.breed}</span>
+                      <span className="text-white font-black text-base uppercase tracking-tighter group-hover:text-amber-400 transition-colors drop-shadow-sm">{r.flockId?.name || 'O\'chirilgan'}</span>
+                      <span className="text-[10px] text-slate-500 font-black tracking-[0.2em] uppercase">{r.flockId?.breed}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-xl font-black text-emerald-600 font-mono tracking-tighter">{r.eggsCollected?.toLocaleString()}</span>
-                    <span className="text-[10px] text-gray-400 block -mt-1 font-bold">ta</span>
+                  <td className="px-8 py-5 text-center">
+                    <span className="text-2xl font-black text-emerald-400 font-mono tracking-tighter drop-shadow-md">{r.eggsCollected?.toLocaleString()}</span>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`text-lg font-black font-mono tracking-tighter ${(r.brokenEggs||0) > 5 ? 'text-rose-500' : 'text-gray-400'}`}>{(r.brokenEggs || 0).toLocaleString()}</span>
+                  <td className="px-8 py-5 text-center">
+                    <span className={`text-xl font-black font-mono tracking-tighter drop-shadow-md ${(r.brokenEggs||0) > 5 ? 'text-rose-400' : 'text-slate-500'}`}>{(r.brokenEggs || 0).toLocaleString()}</span>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${r.category === 'Grade A' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                  <td className="px-8 py-5 text-center">
+                    <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl border text-[9px] font-black uppercase tracking-[0.2em] ${r.category === 'Grade A' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
                       {r.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(r)} className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Pencil size={18} /></button>
-                      <button onClick={() => setDeleteOpen(r._id)} className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={18} /></button>
+                  <td className="px-8 py-5 text-right">
+                    <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openEdit(r)} className="p-3 rounded-2xl bg-slate-800 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-slate-700">
+                        <Pencil size={18} />
+                      </button>
+                      <button onClick={() => setDeleteOpen(r._id)} className="p-3 rounded-2xl bg-slate-800 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors border border-slate-700">
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -207,66 +204,81 @@ export default function Eggs() {
           </table>
         </div>
 
-        {/* Improved Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 border-t border-gray-100 bg-gray-50/50 italic">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-4 py-2 bg-white rounded-full border border-gray-200">
+        {/* Footer & Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between px-10 py-6 border-t border-slate-700/50 bg-slate-800/30">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] px-6 py-3 bg-slate-900/50 rounded-full border border-slate-700/50 drop-shadow-sm">
             {(page - 1) * perPage + 1} – {Math.min(page * perPage, filtered.length)} / {filtered.length} Rekordlar
           </p>
-          <div className="flex gap-1.5 mt-4 sm:mt-0">
-            <button disabled={page === 1} onClick={() => setPage(page-1)} className="p-2.5 bg-white rounded-xl border border-gray-200 text-gray-400 hover:text-amber-600 disabled:opacity-30 transition-all">Oldingi</button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button key={i} onClick={() => setPage(i+1)} className={`w-10 h-10 rounded-xl font-black transition-all ${page === i+1 ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-white border border-gray-100 text-gray-400'}`}>{i+1}</button>
-            ))}
-            <button disabled={page === totalPages} onClick={() => setPage(page+1)} className="p-2.5 bg-white rounded-xl border border-gray-200 text-gray-400 hover:text-amber-600 disabled:opacity-30 transition-all">Keyingi</button>
+          <div className="flex gap-2 mt-4 sm:mt-0">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-6 py-3 rounded-2xl bg-slate-800/80 border border-slate-700/50 text-slate-400 font-bold hover:text-amber-400 transition-colors disabled:opacity-30">Oldingi</button>
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button key={i} onClick={() => setPage(i + 1)} className={`w-11 h-11 rounded-2xl font-black text-sm transition-all ${page === i + 1 ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20' : 'bg-slate-800/80 border border-slate-700/50 text-slate-400 hover:bg-slate-700'}`}>
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-6 py-3 rounded-2xl bg-slate-800/80 border border-slate-700/50 text-slate-400 font-bold hover:text-amber-400 transition-colors disabled:opacity-30">Keyingi</button>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Save Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg p-0 shadow-2xl border border-white/20 animate-in zoom-in-95 overflow-hidden italic font-bold">
-            <div className="bg-amber-500 p-8 text-white flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Egg size={24} />
-                <h3 className="text-xl font-black uppercase tracking-tighter">{editing ? 'Rekordni tahrirlash' : 'Yangi Rekord'}</h3>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95">
+            <div className="px-10 py-8 border-b border-slate-800 flex justify-between items-center bg-amber-500 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
+              <div className="flex items-center gap-5 relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-slate-900/30 text-amber-100 flex items-center justify-center border border-white/20 shadow-inner">
+                  <Egg size={28} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{editing ? 'Rekordni tahrirlash' : 'Yangi Rekord'}</h3>
+                  <p className="text-[10px] text-amber-900 font-black uppercase tracking-[0.2em] mt-1">Kunlik ishlab chiqarish</p>
+                </div>
               </div>
-              <button onClick={() => setModalOpen(false)} className="p-2 hover:bg-white/20 rounded-xl transition-all"><X size={20} /></button>
+              <button onClick={() => setModalOpen(false)} className="p-3 text-amber-800 hover:text-slate-900 hover:bg-white/20 rounded-2xl transition-colors relative z-10">
+                <X size={24} />
+              </button>
             </div>
             
-            <form onSubmit={handleSave} className="p-8 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5 col-span-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Poda</label>
-                  <select value={form.flockId} onChange={e => setForm({...form, flockId: e.target.value})} required className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/5 transition-all text-gray-700">
+            <form onSubmit={handleSave} className="p-10 space-y-8">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2 col-span-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Poda tanlash</label>
+                  <select value={form.flockId} onChange={e => setForm({...form, flockId: e.target.value})} required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 text-white font-black transition-all shadow-inner uppercase">
                     <option value="">Podani tanlang</option>
-                    {flocks.map(f => <option key={f._id} value={f._id}>{f.name}</option>)}
+                    {flocks.map(f => <option key={f._id} value={f._id} className="bg-slate-900">{f.name}</option>)}
                   </select>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sana</label>
-                  <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/5 transition-all text-gray-700 font-mono" />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sana</label>
+                  <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 text-slate-300 font-mono transition-all shadow-inner" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Grade</label>
-                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/5 transition-all text-gray-700">
-                    <option value="Grade A">Grade A (Sifatli)</option>
-                    <option value="Grade B">Grade B (O'rtacha)</option>
-                    <option value="Small">Small (Mayda)</option>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Kategoriya (Grade)</label>
+                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-6 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 text-slate-200 font-bold transition-all shadow-inner uppercase">
+                    <option value="Grade A" className="bg-slate-900">Grade A (Sifatli)</option>
+                    <option value="Grade B" className="bg-slate-900">Grade B (O'rtacha)</option>
+                    <option value="Small" className="bg-slate-900">Small (Mayda)</option>
                   </select>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Yig'ilgan (Ta)</label>
-                  <input type="number" value={form.eggsCollected} onChange={e => setForm({...form, eggsCollected: e.target.value})} placeholder="0" required className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/5 transition-all text-gray-700 font-black text-lg" />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] ml-1">Yig'ildi (Dona)</label>
+                  <input type="number" value={form.eggsCollected} onChange={e => setForm({...form, eggsCollected: e.target.value})} placeholder="0" required className="w-full px-6 py-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/20 text-emerald-400 font-black text-2xl transition-all shadow-inner" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Singan (Ta)</label>
-                  <input type="number" value={form.brokenEggs} onChange={e => setForm({...form, brokenEggs: e.target.value})} placeholder="0" className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/5 transition-all text-rose-500 font-black text-lg" />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] ml-1">Singan (Dona)</label>
+                  <input type="number" value={form.brokenEggs} onChange={e => setForm({...form, brokenEggs: e.target.value})} placeholder="0" className="w-full px-6 py-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl outline-none focus:ring-4 focus:ring-rose-500/20 text-rose-400 font-black text-2xl transition-all shadow-inner" />
                 </div>
               </div>
-              <button type="submit" className="w-full py-5 bg-amber-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-amber-500/20 hover:bg-amber-600 transition-all uppercase tracking-tighter italic">
-                {editing ? 'Yangilash' : 'Saqlash'}
-              </button>
+              <div className="pt-6 border-t border-slate-800 flex gap-4">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-5 rounded-2xl font-black text-slate-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 uppercase tracking-widest text-xs transition-colors">Bekor Qilish</button>
+                <button type="submit" className="flex-[2] py-5 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-2xl font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-amber-500/20 active:translate-y-0.5 transition-all">
+                  {editing ? 'Yangilash' : 'Saqlash'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -274,14 +286,14 @@ export default function Eggs() {
 
       {/* Delete Dialog */}
       {deleteOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in italic">
-          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 border border-rose-50 font-bold">
-            <div className="w-20 h-20 mx-auto bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mb-6 border border-rose-100"><Trash2 size={32}/></div>
-            <h3 className="text-2xl font-black text-gray-800 mb-2 uppercase tracking-tighter italic">O'chirish?</h3>
-            <p className="text-gray-400 text-sm mb-8">Ushbu tuxum yig'imi yozuvini doimiyga o'chirmoqchimisiz?</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteOpen(null)} className="flex-1 py-4 border-2 border-gray-100 rounded-2xl font-black text-gray-400 hover:bg-gray-50 uppercase text-xs italic tracking-widest">Yo'q</button>
-              <button onClick={() => handleDelete(deleteOpen)} className="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-black hover:bg-rose-600 shadow-xl shadow-rose-500/20 uppercase text-xs italic tracking-widest">Ha, o'chir</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in">
+          <div className="bg-slate-900 rounded-[3.5rem] p-12 max-w-sm w-full text-center border border-slate-800 shadow-2xl relative overflow-hidden group">
+            <div className="w-24 h-24 mx-auto bg-rose-500/10 rounded-[2.5rem] flex items-center justify-center text-rose-500 mb-8 border border-rose-500/20 shadow-inner scale-110 group-hover:-rotate-12 transition-transform duration-500"><Trash2 size={40}/></div>
+            <h3 className="text-3xl font-black text-white mb-3 uppercase tracking-tighter">O'chirish?</h3>
+            <p className="text-slate-400 text-sm mb-12 font-bold leading-relaxed px-4">Tuxum yig'imi bo'yicha yozuv olib tashlanadi. Tasdiqlaysizmi?</p>
+            <div className="flex gap-4">
+              <button onClick={() => setDeleteOpen(null)} className="flex-1 py-5 border border-slate-700 rounded-3xl font-black text-slate-400 bg-slate-800 hover:bg-slate-700 uppercase text-[10px] tracking-[0.3em] transition-all">Yo'q</button>
+              <button onClick={() => handleDelete(deleteOpen)} className="flex-1 py-5 bg-rose-600 text-white rounded-3xl font-black hover:bg-rose-500 shadow-xl shadow-rose-500/30 uppercase text-[10px] tracking-[0.3em] transition-all">Ha, o'chir</button>
             </div>
           </div>
         </div>
